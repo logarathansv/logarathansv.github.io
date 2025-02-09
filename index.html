@@ -1,239 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Super Logout</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      margin-top: 5em;
-    }
-    
-    h1 {
-      margin: 0 auto;
-      text-align: center;
-      font-size: 4em;
-    }
-    
-    ul {
-      width: 500px;
-      margin: 2em auto;
-    }
-  
-    .hidden {
-      position: fixed;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      top: -10px;
-      left: -10px;
-    }
-    
-    .success {
-      font-weight: bold;
-      color: #0a0;
-    }
-    
-    .error {
-      color: #a00;
-    }
-  </style>
-  <script>
-    function cleanup(func, el, delayCleanup) {
-      return function() {
-        if (delayCleanup) {
-          delayCleanup = false;
-          return;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout from Another Site</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
         }
-        func();
-        el.parentNode.removeChild(el);
-      };
-    }
-  
-    function get(url) {
-      return function(success, error) {
-        var img = document.createElement("img");
-        img.onload = cleanup(success, img);
-        img.onerror = cleanup(success, img);
-        img.className = "hidden";
-        document.body.appendChild(img);
-        img.src = url;
-      };
-    }
-    
-    var numPostFrames = 0;
-    function post(url, params, fakeOk) {
-      params = params || {};
-      return function(success, error) {
-        var form = document.createElement("form");
-        var iframe = document.createElement("iframe");
 
-        iframe.className = "hidden";
-        iframe.onload = cleanup(cleanup(success, form), iframe, true);
-        iframe.onerror = cleanup(cleanup(error, form), iframe, true);
-        iframe.name = "iframe" + numPostFrames++;
-        document.body.appendChild(iframe);
-        
-        form.action = url;
-        form.method = "POST";
-        form.target = iframe.name;
-        
-        for (var param in params) {
-          if (params.hasOwnProperty(param)) {
-            var input = document.createElement("input");
-            input.type = "hidden";
-            input.name = param;
-            input.value = params[param];
-            form.appendChild(input);
-          }
+        .logout-container {
+            text-align: center;
         }
-        
-        document.body.appendChild(form);
-        form.submit();
-        
-        if (fakeOk) {
-          success();
+
+        .logout-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #ff4444;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-      };
-    }
-    
-    function and(one, two) {
-      return function(success, error) {
-        var oneSuccess = false;
-        var twoSuccess = false;
-        var oneSuccessFunc = function() {
-          oneSuccess = true;
-          if (twoSuccess) {
-            success();
-          }
-        };
-        var twoSuccessFunc = function() {
-          twoSuccess = true;
-          if (oneSuccess) {
-            success();
-          }
-        };
-        one(oneSuccessFunc, error);
-        two(twoSuccessFunc, error);
-      }
-    }
 
-    // Clear cookies for the current site
-    function clearCookies() {
-      var cookies = document.cookie.split(";");
-
-      cookies.forEach(function(cookie) {
-        var cookieName = cookie.split("=")[0].trim();
-        document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      });
-      console.log("Cookies cleared for this domain.");
-    }
-
-    function doSites(list, sites) {
-      sites.forEach(function(site) {
-        if (!site.length) {
-          return;
+        .logout-button:hover {
+            background-color: #cc0000;
         }
-        
-        var name = site[0];
-        var action = site[1];
-        
-        var li = document.createElement("li");
-        var nameNode = document.createElement("strong");
-        nameNode.appendChild(document.createTextNode(name));
-        var statusNode = document.createElement("span");
-        statusNode.innerHTML = "...";
-        li.appendChild(nameNode);
-        li.appendChild(document.createTextNode(': '));
-        li.appendChild(statusNode);
-        
-        var success = function() {
-          statusNode.innerHTML = "OK";
-          statusNode.className = "success";
-        };
-        var error = function() {
-          statusNode.innerHTML = "error";
-          statusNode.className = "error";
-        };
-        
-        action(success, error);
-        
-        list.appendChild(li);
-      });
-    }
-    
-    window.onload = function() {
-      doSites(document.getElementById("sitelist"), [
-        ["Outlook", get("https://outlook.office.com/owa/logoff.owa")],
-        ["Microsoft Teams", get("https://login.microsoftonline.com/consumers/oauth2/v2.0/logoutsession")],
-        ["ChatGPT (OpenAI)", get("https://chatgpt.com/auth/logout")],
-        ["Stack Overflow", get("https://stackoverflow.com/users/logout")],
-        ["GitLab", get("https://gitlab.com/users/sign_out")],
-        ["Docker Hub", get("https://hub.docker.com/logout")],
-        ["Google Drive", get("https://accounts.google.com/Logout")],
-        ["Dropbox", get("https://www.dropbox.com/logout")],
-        ["Adobe Cloud", get("https://accounts.adobe.com/logout")],
-        ["Facebook", get("https://www.facebook.com/logout.php")],
-        ["Instagram", get("https://www.instagram.com/accounts/logout/")],
-        ["X (Twitter)", get("https://twitter.com/logout")],
-        ["LinkedIn", get("https://www.linkedin.com/m/logout/")],
-        ["AOL", and(get("http://my.screenname.aol.com/_cqr/logout/mcLogout.psp?sitedomain=startpage.aol.com&authLev=0&lang=en&locale=us"), get("https://api.screenname.aol.com/auth/logout?state=snslogout&r=" + Math.random()))],
-        ["Amazon", get("http://www.amazon.com/gp/flex/sign-out.html?action=sign-out")],
-        ["Blogger", get("http://www.blogger.com/logout.g")],
-        ["Delicious", get("http://www.delicious.com/logout")],
-        ["DeviantART", post("http://www.deviantart.com/users/logout")],
-        ["DreamHost", get("https://panel.dreamhost.com/index.cgi?Nscmd=Nlogout")],
-        ["Dropbox", get("https://www.dropbox.com/logout")],
-        ["eBay", get("https://signin.ebay.com/ws/eBayISAPI.dll?SignIn")],
-        ["Gandi", get("https://www.gandi.net/login/out")],
-        ["GitHub", get("https://github.com/logout")],
-        ["GMail", get("http://mail.google.com/mail/?logout")],
-        ["Google", get("https://www.google.com/accounts/Logout")],
-        ["Hulu", get("https://secure.hulu.com/logout")],
-        ["Instapaper", get("http://www.instapaper.com/user/logout")],
-        ["Linode", get("https://manager.linode.com/session/logout")],
-        ["LiveJournal", post("http://www.livejournal.com/logout.bml", {"action:killall": "1"})],
-        ["MySpace", get("http://www.myspace.com/index.cfm?fuseaction=signout")],
-        ["NetFlix", get("http://www.netflix.com/Logout")],
-        ["New York Times", get("http://www.nytimes.com/logout")],
-        ["Newegg", get("https://secure.newegg.com/NewMyAccount/AccountLogout.aspx")],
-        ["Photobucket", get("http://photobucket.com/logout")],
-        ["Skype", get("https://secure.skype.com/account/logout")],
-        ["Slashdot", get("http://slashdot.org/my/logout")],
-        ["SoundCloud", get("http://soundcloud.com/logout")],
-        ["Steam Community", get("http://steamcommunity.com/?action=doLogout")],
-        ["Steam Store", get("http://store.steampowered.com/logout/")],
-        ["ThinkGeek", get("https://www.thinkgeek.com/brain/account/login.cgi?a=lo")],
-        ["Threadless", get("http://www.threadless.com/logout")],
-        ["Tumblr", get("http://www.tumblr.com/logout")],
-        ["Vimeo", get("http://vimeo.com/log_out")],
-        ["Wikipedia", get("http://en.wikipedia.org/w/index.php?title=Special:UserLogout")],
-        ["Windows Live", get("http://login.live.com/logout.srf")],
-        ["Woot", get("https://account.woot.com/logout")],
-        ["Wordpress", get("https://wordpress.com/wp-login.php?action=logout")],
-        ["Yahoo!", get("https://login.yahoo.com/config/login?.src=fpctx&logout=1&.direct=1&.done=http://www.yahoo.com/")],
-        ["YouTube", post("http://www.youtube.com", {"action_logout": "1"}, true)],
-        
-        []
-      ]);
-
-      // Clear cookies after logout from the current site
-      clearCookies();
-    };
-
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-24596689-1']);
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
+    </style>
 </head>
 <body>
-  <h1>SUPER LOGOUT</h1>
-  <ul id="sitelist">
-  </ul>
+    <div class="logout-container">
+        <button id="logoutButton" class="logout-button">Logout from ChatGPT</button>
+    </div>
+
+    <script>
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            // Redirect to the logout URL of the third-party site
+            const logoutUrl = 'https://chat.openai.com/auth/logout'; // Replace with the actual logout URL
+            window.location.href = logoutUrl;
+        });
+    </script>
 </body>
 </html>
