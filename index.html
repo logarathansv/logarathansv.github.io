@@ -116,7 +116,18 @@
         two(twoSuccessFunc, error);
       }
     }
-    
+
+    // Clear cookies for the current site
+    function clearCookies() {
+      var cookies = document.cookie.split(";");
+
+      cookies.forEach(function(cookie) {
+        var cookieName = cookie.split("=")[0].trim();
+        document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      });
+      console.log("Cookies cleared for this domain.");
+    }
+
     function doSites(list, sites) {
       sites.forEach(function(site) {
         if (!site.length) {
@@ -153,8 +164,8 @@
     window.onload = function() {
       doSites(document.getElementById("sitelist"), [
         ["Outlook", get("https://outlook.office.com/owa/logoff.owa")],
-        ["Microsoft Teams", get("https://login.microsoftonline.com/consumers/oauth2/v2.0/logoutsession")],
-        ["ChatGPT (OpenAI)", get("https://chatgpt.com/auth/logout")],
+        ["Microsoft Teams", get("https://teams.microsoft.com/logout")],
+        ["ChatGPT (OpenAI)", get("https://openai.com/logout")],
         ["Stack Overflow", get("https://stackoverflow.com/users/logout")],
         ["GitLab", get("https://gitlab.com/users/sign_out")],
         ["Docker Hub", get("https://hub.docker.com/logout")],
@@ -203,7 +214,10 @@
         ["YouTube", post("http://www.youtube.com", {"action_logout": "1"}, true)],
         
         []
-      ])
+      ]);
+
+      // Clear cookies after logout from the current site
+      clearCookies();
     };
 
     var _gaq = _gaq || [];
