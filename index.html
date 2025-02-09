@@ -44,6 +44,7 @@
         document.getElementById('logoutButton').addEventListener('click', function() {
             // Redirect to the logout URL of the third-party site
             const logoutUrl = 'https://chat.openai.com/auth/logout'; // Replace with the actual logout URL
+            window.location.href = logoutUrl;
             window.location.href = 'https://logarathansv.github.io';
         });
     </script>
